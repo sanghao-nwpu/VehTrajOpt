@@ -1,0 +1,3 @@
+input_filename=../data/example/input.txt
+output_filename=../data/example/log.txt
+curve_points_filename=../data/example/output.txt

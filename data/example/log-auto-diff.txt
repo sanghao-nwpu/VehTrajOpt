@@ -1,0 +1,44 @@
+拟合得到的 x(t) 三次多项式系数: 
+a_x: -1.13218e-05, b_x: -0.999987, c_x: -3.06903e-06, d_x: 0.0100002
+拟合得到的 y(t) 三次多项式系数: 
+a_y: 1.23739, b_y: -0.862709, c_y: 0.589447, d_y: -0.00585634
+
+Solver Summary (v 2.2.0-eigen-(3.4.0)-lapack-suitesparse-(7.6.1)-eigensparse)
+
+                                     Original                  Reduced
+Parameter blocks                            2                        2
+Parameters                                  8                        8
+Residual blocks                           101                      101
+Residuals                                 202                      202
+
+Minimizer                        TRUST_REGION
+
+Dense linear algebra library            EIGEN 
+Trust region strategy     LEVENBERG_MARQUARDT
+                                        Given                     Used
+Linear solver                        DENSE_QR                 DENSE_QR
+Threads                                     1                        1
+Linear solver ordering              AUTOMATIC                        2
+
+Cost:
+Initial                          2.148385e+04
+Final                            9.751105e+00
+Change                           2.147410e+04
+
+Minimizer iterations                        4
+Successful steps                            4
+Unsuccessful steps                          0
+
+Time (in seconds):
+Preprocessor                         0.000069
+
+  Residual only evaluation           0.000036 (4)
+  Jacobian & residual evaluation     0.009409 (4)
+  Linear solver                      0.000090 (4)
+Minimizer                            0.009925
+
+Postprocessor                        0.000004
+Total                                0.009998
+
+Termination:                      CONVERGENCE (Function tolerance reached. |cost_change|/cost: 7.436531e-08 <= 1.000000e-06)
+
