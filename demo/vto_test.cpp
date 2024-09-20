@@ -33,11 +33,34 @@ bool ReadConfigTxt(const std::string& filename, Config& config) {
 
     std::string line;
     while (std::getline(infile, line)) {
+        // 处理注释，忽略以#开头的行
+        size_t comment_pos = line.find('#');
+        if (comment_pos != std::string::npos) {
+            line = line.substr(0, comment_pos);
+        }
+
+        // 去除前后空白字符
+        line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+        }));
+        line.erase(std::find_if(line.rbegin(), line.rend(), [](unsigned char ch) {
+            return !std::isspace(ch);
+        }).base(), line.end());
+
+        // 处理键值对
         std::istringstream iss(line);
         std::string key;
         if (std::getline(iss, key, '=')) {
             std::string value;
             if (std::getline(iss, value)) {
+                // 去除值的前后空白字符
+                value.erase(value.begin(), std::find_if(value.begin(), value.end(), [](unsigned char ch) {
+                    return !std::isspace(ch);
+                }));
+                value.erase(std::find_if(value.rbegin(), value.rend(), [](unsigned char ch) {
+                    return !std::isspace(ch);
+                }).base(), value.end());
+
                 if (key == "input_filename") {
                     config.input_filename = value;
                 } else if (key == "output_filename") {
@@ -52,6 +75,7 @@ bool ReadConfigTxt(const std::string& filename, Config& config) {
     infile.close();
     return true;
 }
+
 
 
 // 定义解析求导的代价函数
@@ -291,7 +315,7 @@ int main() {
     // 设置求解器选项
     ceres::Solver::Options options;
     options.linear_solver_type = ceres::DENSE_QR;
-    options.max_num_iterations = 100;
+    options.max_num_iterations = 200;
     options.minimizer_progress_to_stdout = true;
 
     // 求解

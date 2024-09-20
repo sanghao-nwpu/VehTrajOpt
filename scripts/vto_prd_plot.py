@@ -12,7 +12,7 @@ plt.close('all')  # 关闭所有窗口
 # font = fm.FontProperties(fname=r'/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc', size=14)
 
 # 读取第一个文件内容
-root_dir = "/home/sh/VTO_PRD/DevelopFolder/data/20240919_traj_1_1"  # 请将文件名替换成你的文件名
+root_dir = "/home/sh/VTO_PRD/DevelopFolder/VehTrajOpt/data/20240919_traj_1_1"  # 请将文件名替换成你的文件名
 input_data_path = root_dir + "/track_vehicle_info.txt"  # 请将文件名替换成你的文件名
 data_input = np.loadtxt(input_data_path)
 output_data_path =  root_dir + "/track_vehicle_info_optimized.txt"  # 请将文件名替换成你的文件名
