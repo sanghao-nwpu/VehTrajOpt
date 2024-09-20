@@ -64,6 +64,10 @@ add_executable(vto_test demo/vto_test.cpp)
 target_link_libraries(vto_test ${CERES_LIBRARIES})
 target_link_libraries(vto_test yaml-cpp)
 
+add_executable(vto_develop demo/vto_develop.cpp)
+target_link_libraries(vto_develop ${CERES_LIBRARIES})
+target_link_libraries(vto_develop yaml-cpp)
+
 # 编译动态库
 # add_library(NhcTrajectoryOptimizationLib SHARED ${SRC_FILES})
 

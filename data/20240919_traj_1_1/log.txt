@@ -1,15 +1,11 @@
-拟合得到的 x(t) 三次多项式系数: 
-a_x: -5.07166e+06, b_x: 0.0191048, c_x: 5.26019e-07, d_x: -6.58591e-14
-拟合得到的 y(t) 三次多项式系数: 
-a_y: 6.52075e+06, b_y: -4.12374, c_y: 8.57263e-07, d_y: -5.87388e-14
 
 Solver Summary (v 2.2.0-eigen-(3.4.0)-lapack-suitesparse-(7.6.1)-eigensparse)
 
                                      Original                  Reduced
-Parameter blocks                            2                        2
-Parameters                                  8                        8
-Residual blocks                           133                      133
-Residuals                                 266                      266
+Parameter blocks                          266                      266
+Parameters                                266                      266
+Residual blocks                           264                      264
+Residuals                                 528                      528
 
 Minimizer                        TRUST_REGION
 
@@ -18,27 +14,27 @@ Trust region strategy     LEVENBERG_MARQUARDT
                                         Given                     Used
 Linear solver                        DENSE_QR                 DENSE_QR
 Threads                                     1                        1
-Linear solver ordering              AUTOMATIC                        2
+Linear solver ordering              AUTOMATIC                      266
 
 Cost:
-Initial                          2.254704e+08
-Final                            1.237444e+02
-Change                           2.254703e+08
+Initial                          1.033644e+01
+Final                            2.349124e+00
+Change                           7.987315e+00
 
-Minimizer iterations                      201
-Successful steps                          201
+Minimizer iterations                        2
+Successful steps                            2
 Unsuccessful steps                          0
 
 Time (in seconds):
-Preprocessor                         0.000101
+Preprocessor                         0.003449
 
-  Residual only evaluation           0.002050 (200)
-  Jacobian & residual evaluation     0.473752 (201)
-  Linear solver                      0.003285 (200)
-Minimizer                            0.491287
+  Residual only evaluation           0.000040 (2)
+  Jacobian & residual evaluation     0.004370 (2)
+  Linear solver                      0.032544 (2)
+Minimizer                            0.038914
 
-Postprocessor                        0.000008
-Total                                0.491396
+Postprocessor                        0.000024
+Total                                0.042387
 
-Termination:                   NO_CONVERGENCE (Maximum number of iterations reached. Number of iterations: 200.)
+Termination:                      CONVERGENCE (Function tolerance reached. |cost_change|/cost: 7.695738e-08 <= 1.000000e-06)
 
