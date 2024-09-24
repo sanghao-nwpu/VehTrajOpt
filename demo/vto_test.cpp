@@ -294,6 +294,7 @@ int main() {
     if (true == config.ceres_auto_diff_flag)
     {
         for (size_t i = 0; i < t_data.size(); ++i) {
+            // 2表示残差维度, 第一个4表示第一个参数维度， 第二个4表示第二个参数维度
             problem.AddResidualBlock(
                 new ceres::AutoDiffCostFunction<SplineAutoDiffResidual, 2, 4, 4>(
                     new SplineAutoDiffResidual(t_data[i], x_data[i], y_data[i])),

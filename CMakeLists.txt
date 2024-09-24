@@ -28,6 +28,7 @@ include_directories(${CERES_INCLUDE_DIRS})
 # endif()
 # include_directories(${nlohmann_json_INCLUDE_DIRS})
 
+# 添加yaml-cpp库
 find_package(yaml-cpp REQUIRED)
 if(yaml-cpp_FOUND)
     message(STATUS "yaml-cpp found!")
@@ -37,7 +38,7 @@ endif()
 include_directories(${yaml-cpp_INCLUDE_DIRS})
 
 # 添加头文件目录
-# include_directories(include)
+include_directories(include)
 
 # 添加源文件目录
 # file(GLOB_RECURSE SRC_FILES src/*.cpp)

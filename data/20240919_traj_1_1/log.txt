@@ -2,7 +2,7 @@
 Solver Summary (v 2.2.0-eigen-(3.4.0)-lapack-suitesparse-(7.6.1)-eigensparse)
 
                                      Original                  Reduced
-Parameter blocks                          266                      266
+Parameter blocks                          133                      133
 Parameters                                266                      266
 Residual blocks                           264                      264
 Residuals                                 528                      528
@@ -14,7 +14,7 @@ Trust region strategy     LEVENBERG_MARQUARDT
                                         Given                     Used
 Linear solver                        DENSE_QR                 DENSE_QR
 Threads                                     1                        1
-Linear solver ordering              AUTOMATIC                      266
+Linear solver ordering              AUTOMATIC                      133
 
 Cost:
 Initial                          1.033644e+01
@@ -26,15 +26,15 @@ Successful steps                            2
 Unsuccessful steps                          0
 
 Time (in seconds):
-Preprocessor                         0.003449
+Preprocessor                         0.000106
 
-  Residual only evaluation           0.000040 (2)
-  Jacobian & residual evaluation     0.004370 (2)
-  Linear solver                      0.032544 (2)
-Minimizer                            0.038914
+  Residual only evaluation           0.000054 (2)
+  Jacobian & residual evaluation     0.002626 (2)
+  Linear solver                      0.020335 (2)
+Minimizer                            0.023968
 
-Postprocessor                        0.000024
-Total                                0.042387
+Postprocessor                        0.000005
+Total                                0.024079
 
 Termination:                      CONVERGENCE (Function tolerance reached. |cost_change|/cost: 7.695738e-08 <= 1.000000e-06)
 
