@@ -1,6 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+
+#define R2D(x) ((x) * 5.729577951308232087679815e+1)
+#define D2R(x) ((x) * 1.745329251994329576923690e-2)
+
 #include <Eigen/Dense>
 
 typedef struct _VehicleState2D_

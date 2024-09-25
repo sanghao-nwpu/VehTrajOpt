@@ -33,7 +33,8 @@ bool ReadConfigYaml(const std::string& filename, Config& config) {
 bool ReadData(const std::string& filename, 
               std::vector<double>& t_data, 
               std::vector<double>& x_data, 
-              std::vector<double>& y_data) 
+              std::vector<double>& y_data, 
+              std::vector<double>& yaw_data) 
 {
     std::ifstream infile(filename);
     if (!infile.is_open()) {
@@ -55,6 +56,7 @@ bool ReadData(const std::string& filename,
             t_data.push_back(data[0]);
             x_data.push_back(data[2]);
             y_data.push_back(data[3]);
+            yaw_data.push_back(data[4]);
         }
         data.clear();
     }
@@ -78,7 +80,7 @@ void WriteResults(const std::string& results_filename,
     }
 
     results_file << summary.FullReport() << std::endl;
-    printf("%s\n", summary.FullReport().c_str());
+    // printf("%s\n", summary.FullReport().c_str());
     results_file.close();
 
     // 写入拟合后的曲线点坐标
@@ -113,16 +115,14 @@ int main() {
     }
 
     // 数据容器
-    std::vector<double> t_data, x_data, y_data;
+    std::vector<double> t_data, x_data, y_data, yaw_data;
 
     // 读取数据
-    if (!ReadData(config.input_filename, t_data, x_data, y_data)) {
+    if (!ReadData(config.input_filename, t_data, x_data, y_data, yaw_data)) {
         return 1; // 如果读取失败，则退出
     }
     num_observations = t_data.size();
-    // 存储多项式系数
-    double coeffs_x[4] = {0.0, 0.0, 0.0, 0.0}; // x(t) 的系数
-    double coeffs_y[4] = {0.0, 0.0, 0.0, 0.0}; // y(t) 的系数
+    
     std::vector<double> x_points, y_points; // 存储拟合后的曲线点坐标
     x_points = x_data;  //初值设置为观测数据
     y_points = y_data;
@@ -141,7 +141,7 @@ int main() {
         // 添加单帧观测残差
         obs_vehicle_state.x = x_data[i];
         obs_vehicle_state.y = y_data[i];
-        obs_vehicle_state.yaw = 0.0;
+        obs_vehicle_state.yaw = yaw_data[i];
 
         // 添加单帧观测残差
         problem.AddResidualBlock(
@@ -154,8 +154,8 @@ int main() {
         if (i > 0 && i < t_data.size() - 1)
         {
             problem.AddResidualBlock(
-                new ceres::AutoDiffCostFunction<DynamicResidual, 2, 2, 2, 2>(
-                    new DynamicResidual()),
+                new ceres::AutoDiffCostFunction<DynamicResidual, 3, 2, 2, 2>(
+                    new DynamicResidual(obs_vehicle_state)),
                 nullptr,
                 &parameters[(i - 1) * 2], 
                 &parameters[i * 2], 
