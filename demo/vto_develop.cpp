@@ -11,6 +11,29 @@
 
 /** @brief 结构体定义 */
 
+typedef struct TrackVehicleInfo
+{
+    double t; // 时间
+    int id; // 车辆ID
+    double x; // x坐标
+    double y; // y坐标
+    double yaw; // 航向角
+    double vx; // 速度
+    double vy; // 速度
+    double ax; // 加速度
+    double ay; // 加速度
+} TrackVehicleInfo;
+
+typedef struct OptimizedVehicleInfo
+{
+    double t; // 时间
+    double x; // x坐标
+    double y; // y坐标
+    double vx; // 速度
+    double vy; // 速度
+    double yaw; // 航向角
+} OptimizedVehicleInfo;
+
 struct Config {
     std::string input_filename;
     std::string output_filename;
@@ -31,11 +54,9 @@ bool ReadConfigYaml(const std::string& filename, Config& config) {
 
 // 读取数据函数
 bool ReadData(const std::string& filename, 
-              std::vector<double>& t_data, 
-              std::vector<double>& x_data, 
-              std::vector<double>& y_data, 
-              std::vector<double>& yaw_data) 
+              std::vector<TrackVehicleInfo>& track_vehicle_info_list) 
 {
+    TrackVehicleInfo track_vehicle_info;
     std::ifstream infile(filename);
     if (!infile.is_open()) {
         std::cerr << "无法打开文件: " << filename << std::endl;
@@ -53,10 +74,15 @@ bool ReadData(const std::string& filename,
         }
         if (data.size() >= 3)
         {
-            t_data.push_back(data[0]);
-            x_data.push_back(data[2]);
-            y_data.push_back(data[3]);
-            yaw_data.push_back(data[4]);
+            track_vehicle_info.t = data[0] * 1e-3;
+            track_vehicle_info.x = data[1];
+            track_vehicle_info.y = data[2];
+            // track_vehicle_info.z = data[3];
+            track_vehicle_info.vx = data[4];
+            track_vehicle_info.vy = data[5];
+            // track_vehicle_info.vz = data[6];
+            track_vehicle_info.yaw = data[7];
+            track_vehicle_info_list.push_back(track_vehicle_info);
         }
         data.clear();
     }
@@ -68,10 +94,8 @@ bool ReadData(const std::string& filename,
 // 写入结果函数
 void WriteResults(const std::string& results_filename, 
                   const std::string& points_filename, 
-                  const std::vector<double> x_points, 
-                  const std::vector<double> y_points,
                   const ceres::Solver::Summary& summary,
-                  const std::vector<double>& t_data) {
+                  const std::vector<OptimizedVehicleInfo> &optimized_vehicle_info_list) {
     // 写入拟合系数
     std::ofstream results_file(results_filename);
     if (!results_file.is_open()) {
@@ -91,13 +115,13 @@ void WriteResults(const std::string& results_filename,
     }
 
     // 计算并写入拟合后的坐标点
-    for (size_t i = 0; i < t_data.size(); ++i)
+    for (size_t i = 0; i < optimized_vehicle_info_list.size(); ++i)
     {
         // 写入到文件，保留6位小数
         points_file << std::fixed << std::setprecision(6) 
-                    << t_data[i] << " " 
-                    << x_points[i] << " " 
-                    << y_points[i] << std::endl;
+                    << optimized_vehicle_info_list[i].t << " " 
+                    << optimized_vehicle_info_list[i].x << " " 
+                    << optimized_vehicle_info_list[i].y << std::endl;
     }
 
     points_file.close();
@@ -108,40 +132,46 @@ int main() {
     // 配置参数
     Config config;
     size_t num_observations = 0; // 观测点个数
+
+
+    // 数据容器
+    std::vector<TrackVehicleInfo> track_vehicle_info_list; // 存储观测数据
+    std::vector<OptimizedVehicleInfo> optimized_vehicle_info_list; // 存储优化结果
+
     // 读取配置文件
     std::string config_yaml_filename = "../data/config.yaml"; // 配置文件路径
     if (!ReadConfigYaml(config_yaml_filename, config)) {
         return 1; // 如果读取失败，则退出
     }
 
-    // 数据容器
-    std::vector<double> t_data, x_data, y_data, yaw_data;
 
     // 读取数据
-    if (!ReadData(config.input_filename, t_data, x_data, y_data, yaw_data)) {
+    if (!ReadData(config.input_filename, track_vehicle_info_list)) {
         return 1; // 如果读取失败，则退出
     }
-    num_observations = t_data.size();
+    num_observations = track_vehicle_info_list.size();
     
-    std::vector<double> x_points, y_points; // 存储拟合后的曲线点坐标
-    x_points = x_data;  //初值设置为观测数据
-    y_points = y_data;
     // 创建优化问题
     ceres::Problem problem;
 
     ObservedVehicleState2D obs_vehicle_state;
-    double* parameters = new double[t_data.size() * 2]; // 优化参数
+    // 优化参数
+    double* parameters = new double[num_observations * 2]; // 优化参数,  x, y
+
     // 为每一个数据点添加残差
-    for (size_t i = 0; i < t_data.size(); ++i) 
+    for (size_t i = 0; i < num_observations; ++i) 
     {
         // 设置优化参数初值
-        parameters[i * 2] = x_data[i];
-        parameters[i * 2 + 1] = y_data[i];
+        parameters[i * 2] = track_vehicle_info_list[i].x;
+        parameters[i * 2 + 1] = track_vehicle_info_list[i].y;
 
         // 添加单帧观测残差
-        obs_vehicle_state.x = x_data[i];
-        obs_vehicle_state.y = y_data[i];
-        obs_vehicle_state.yaw = yaw_data[i];
+        obs_vehicle_state.t = track_vehicle_info_list[i].t;
+        obs_vehicle_state.x = track_vehicle_info_list[i].x;
+        obs_vehicle_state.y = track_vehicle_info_list[i].y;
+        obs_vehicle_state.vx = track_vehicle_info_list[i].vx;
+        obs_vehicle_state.vy = track_vehicle_info_list[i].vy;
+        obs_vehicle_state.yaw = track_vehicle_info_list[i].yaw;
 
         // 添加单帧观测残差
         problem.AddResidualBlock(
@@ -151,8 +181,10 @@ int main() {
             &parameters[i * 2]);
 
         // 添加帧间观测残差
-        if (i > 0 && i < t_data.size() - 1)
+        if (i > 0 && i < num_observations - 1)
         {
+            obs_vehicle_state.delta_t = track_vehicle_info_list[i + 1].t - track_vehicle_info_list[i - 1].t;
+            // std::cout << obs_vehicle_state.delta_t << std::endl;
             problem.AddResidualBlock(
                 new ceres::AutoDiffCostFunction<DynamicResidual, 3, 2, 2, 2>(
                     new DynamicResidual(obs_vehicle_state)),
@@ -174,19 +206,18 @@ int main() {
     ceres::Solve(options, &problem, &summary);
 
     // 写入结果
-    for (size_t i = 0; i < t_data.size(); i++)
+    for (size_t i = 0; i < num_observations; i++)
     {
-        x_points[i] = parameters[i * 2];
-        y_points[i] = parameters[i * 2 + 1];
+        optimized_vehicle_info_list[i].t = track_vehicle_info_list[i].t;
+        optimized_vehicle_info_list[i].x = parameters[i * 2];
+        optimized_vehicle_info_list[i].y = parameters[i * 2 + 1];
     }
     delete [] parameters;
 
     WriteResults(config.output_filename, 
                  config.curve_points_filename, 
-                 x_points, 
-                 y_points, 
-                 summary, 
-                 t_data);
+                 summary,
+                 optimized_vehicle_info_list);
 
     return 0;
 }

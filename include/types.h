@@ -20,13 +20,14 @@ typedef struct _VehicleState2D_
 typedef struct _ObservedVehicleState2D_
 {
     double t;
+    double delta_t; // time interval between two observations
     double x;
     double y;
     double yaw;
-    double rel_vx;
-    double rel_vy;
-    double rel_ax;
-    double rel_ay;
+    double vx;
+    double vy;
+    double ax;
+    double ay;
     double w;
     int    motion_type;
 } ObservedVehicleState2D;

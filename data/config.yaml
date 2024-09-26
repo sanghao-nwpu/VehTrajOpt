@@ -1,4 +1,4 @@
-input_filename: "../data/20240919_traj_1_1/track_vehicle_info.txt"
+input_filename: "../data/20240919_traj_1_1/vehicle_info.txt"
 output_filename: "../data/20240919_traj_1_1/log.txt"
 curve_points_filename: "../data/20240919_traj_1_1/track_vehicle_info_optimized.txt"
 ceres_auto_diff_flag: True

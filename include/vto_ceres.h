@@ -29,10 +29,11 @@ struct DynamicResidual {
 
     // 括号重载函数参数包含两个帧的优化变量和残差
     template <typename T>
-    bool operator()(const T* opti_param_01, 
-                    const T* opti_param_02,
-                    const T* opti_param_03, 
-                    T* residual) const {
+    bool operator()(const T *opti_param_01,
+                    const T *opti_param_02,
+                    const T *opti_param_03,
+                    T *residual) const
+    {
         T angle;
         T delta_x12, delta_y12;
         T delta_x23, delta_y23;
@@ -48,6 +49,8 @@ struct DynamicResidual {
         // 计算残差
         residual[0] = 100.0 * ((opti_param_03[0] - opti_param_02[0]) - (opti_param_02[0] - opti_param_01[0]));
         residual[1] = 100.0 * ((opti_param_03[1] - opti_param_02[1]) - (opti_param_02[1] - opti_param_01[1])); 
+        // residual[0] = observed_state_.vx - (opti_param_03[0] - opti_param_01[0]) / observed_state_.delta_t;
+        // residual[1] = observed_state_.vy - (opti_param_03[1] - opti_param_01[1]) / observed_state_.delta_t;
         residual[2] = (observed_state_.yaw - 
                       R2D(atan2(opti_param_03[1] - opti_param_01[1], 
                                 opti_param_03[0] - opti_param_01[0])));
@@ -55,16 +58,11 @@ struct DynamicResidual {
         {
             residual[2] = residual[2] - 360.0 * floor(residual[2] / 360.0 + 0.5);
         }
-        // residual[2] = 10.0 * residual[2];
-        
-        printf("observed_state: %.3lf, %.3lf, %.3lf, angle: %.3lf, residual: %.3lf\n",
-               observed_state_.x,
-               observed_state_.y,
-               observed_state_.yaw,
-               angle, 
-               residual[2]);
+
+
         return true;
     }
+
 private:
     ObservedVehicleState2D observed_state_;
 };
