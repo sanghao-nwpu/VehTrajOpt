@@ -20,7 +20,7 @@ typedef struct _VehicleState2D_
 typedef struct _ObservedVehicleState2D_
 {
     double t;
-    double delta_t; // time interval between two observations
+    double delta_t;
     double x;
     double y;
     double yaw;

@@ -7,64 +7,70 @@
 
 #include "types.h"
 
-// 单帧观测残差函数
+// 单帧位置观测残差函数
 struct PointResidual {
-    PointResidual(ObservedVehicleState2D observed_state) : observed_state_(observed_state) {}
+    PointResidual(ObservedVehicleState2D observed_state, double weight) 
+        : observed_state_(observed_state), weight_(weight) {}
 
     //括号重载函数参数包含优化变量和残差
     template <typename T>
-    bool operator()(const T* const opti_param, T* residual) const {
+    bool operator()(const T* const p, T* residual) const {
         //opti_param[0]为x坐标，opti_param[1]为y坐标
-        residual[0] = opti_param[0] - observed_state_.x;
-        residual[1] = opti_param[1] - observed_state_.y;
+        residual[0] = weight_ * (p[0] - observed_state_.x);
+        residual[1] = weight_ * (p[1] - observed_state_.y);
         return true;
     }
 private:
     ObservedVehicleState2D observed_state_;
+    double weight_;
+};
+
+// 平滑性残差函数
+struct SmoothnessResidual {
+    SmoothnessResidual(double weight) : weight_(weight) {}
+
+    template <typename T>
+    bool operator()(const T* const p1, const T* const p2, const T* const p3, T* residual) const {
+        // 计算二阶差异
+        residual[0] = weight_ * (p3[0] - 2.0 * p2[0] + p1[0]); // x方向的平滑性
+        residual[1] = weight_ * (p3[1] - 2.0 * p2[1] + p1[1]); // y方向的平滑性
+        return true;
+    }
+
+    double weight_;
 };
 
 // 动力学残差函数
 struct DynamicResidual {
-    DynamicResidual(ObservedVehicleState2D observed_state) : observed_state_(observed_state) {}
+    DynamicResidual(ObservedVehicleState2D observed_state, double weight) 
+        : observed_state_(observed_state), weight_(weight) {}
 
     // 括号重载函数参数包含两个帧的优化变量和残差
     template <typename T>
-    bool operator()(const T *opti_param_01,
-                    const T *opti_param_02,
-                    const T *opti_param_03,
+    bool operator()(const T *p1,
+                    const T *p2,
                     T *residual) const
     {
-        T angle;
-        T delta_x12, delta_y12;
-        T delta_x23, delta_y23;
-        T delta_x13, delta_y13;
+        T angle, vx, vy;
 
-        delta_x12 = (opti_param_02[0] - opti_param_01[0]);
-        delta_y12 = (opti_param_02[1] - opti_param_01[1]);
-        delta_x23 = (opti_param_03[0] - opti_param_02[0]);
-        delta_y23 = (opti_param_03[1] - opti_param_02[1]);
-        delta_x13 = (opti_param_03[0] - opti_param_01[0]);
-        delta_y13 = (opti_param_03[1] - opti_param_01[1]);
-        angle = R2D(atan2(delta_y13, delta_x13));
+        angle = R2D(atan2(p2[1] - p1[1], p2[0] - p1[0]));
+        vx = (p2[0] - p1[0]) / observed_state_.delta_t;
+        vy = (p2[1] - p1[1]) / observed_state_.delta_t;
         // 计算残差
-        residual[0] = 100.0 * ((opti_param_03[0] - opti_param_02[0]) - (opti_param_02[0] - opti_param_01[0]));
-        residual[1] = 100.0 * ((opti_param_03[1] - opti_param_02[1]) - (opti_param_02[1] - opti_param_01[1])); 
-        // residual[0] = observed_state_.vx - (opti_param_03[0] - opti_param_01[0]) / observed_state_.delta_t;
-        // residual[1] = observed_state_.vy - (opti_param_03[1] - opti_param_01[1]) / observed_state_.delta_t;
-        residual[2] = (observed_state_.yaw - 
-                      R2D(atan2(opti_param_03[1] - opti_param_01[1], 
-                                opti_param_03[0] - opti_param_01[0])));
+        residual[0] = weight_ * (observed_state_.vx - vx);
+        residual[1] = weight_ * (observed_state_.vy - vy);
+        residual[2] = weight_ * (observed_state_.yaw - angle);
         if (residual[2] > 180 || residual[2] < -180)
         {
             residual[2] = residual[2] - 360.0 * floor(residual[2] / 360.0 + 0.5);
         }
 
-
         return true;
     }
 
 private:
     ObservedVehicleState2D observed_state_;
+    double weight_;
 };
 
 #endif // VTO_CERES_H

@@ -132,7 +132,8 @@ int main() {
     // 配置参数
     Config config;
     size_t num_observations = 0; // 观测点个数
-
+    OptimizedVehicleInfo optimized_vehicle_info; // 优化结果
+    ObservedVehicleState2D obs_vehicle_state;
 
     // 数据容器
     std::vector<TrackVehicleInfo> track_vehicle_info_list; // 存储观测数据
@@ -149,12 +150,14 @@ int main() {
     if (!ReadData(config.input_filename, track_vehicle_info_list)) {
         return 1; // 如果读取失败，则退出
     }
+    // 打印读取数据
+    std::cout << "读取数据成功，共有" << track_vehicle_info_list.size() << "个观测点" << std::endl;
+
     num_observations = track_vehicle_info_list.size();
     
     // 创建优化问题
     ceres::Problem problem;
 
-    ObservedVehicleState2D obs_vehicle_state;
     // 优化参数
     double* parameters = new double[num_observations * 2]; // 优化参数,  x, y
 
@@ -176,23 +179,34 @@ int main() {
         // 添加单帧观测残差
         problem.AddResidualBlock(
             new ceres::AutoDiffCostFunction<PointResidual, 2, 2>(
-                new PointResidual(obs_vehicle_state)),
+                new PointResidual(obs_vehicle_state, 1.0)),
             nullptr,
             &parameters[i * 2]);
 
         // 添加帧间观测残差
-        if (i > 0 && i < num_observations - 1)
+        if (i > 0)
         {
-            obs_vehicle_state.delta_t = track_vehicle_info_list[i + 1].t - track_vehicle_info_list[i - 1].t;
-            // std::cout << obs_vehicle_state.delta_t << std::endl;
+            obs_vehicle_state.delta_t = track_vehicle_info_list[i].t - track_vehicle_info_list[i - 1].t;
             problem.AddResidualBlock(
-                new ceres::AutoDiffCostFunction<DynamicResidual, 3, 2, 2, 2>(
-                    new DynamicResidual(obs_vehicle_state)),
+                new ceres::AutoDiffCostFunction<DynamicResidual, 3, 2, 2>(
+                    new DynamicResidual(obs_vehicle_state, 1.0)),
                 nullptr,
                 &parameters[(i - 1) * 2], 
-                &parameters[i * 2], 
-                &parameters[(i + 1) * 2]);
+                &parameters[i * 2]);
         }
+
+        // 添加平滑性约束
+        if (i > 0 && i < num_observations - 1)
+        {
+            problem.AddResidualBlock(
+                new ceres::AutoDiffCostFunction<SmoothnessResidual, 2, 2, 2, 2>(
+                    new SmoothnessResidual(10.0)),
+                    nullptr,
+                    &parameters[(i - 1) * 2], 
+                    &parameters[i * 2], 
+                    &parameters[(i + 1) * 2]);
+        }
+
     }
 
     // 设置求解器选项
@@ -205,19 +219,24 @@ int main() {
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
 
+    std::cout << summary.FullReport() << std::endl;
+
     // 写入结果
     for (size_t i = 0; i < num_observations; i++)
     {
-        optimized_vehicle_info_list[i].t = track_vehicle_info_list[i].t;
-        optimized_vehicle_info_list[i].x = parameters[i * 2];
-        optimized_vehicle_info_list[i].y = parameters[i * 2 + 1];
+        optimized_vehicle_info.t = track_vehicle_info_list[i].t;
+        optimized_vehicle_info.x = parameters[i * 2];
+        optimized_vehicle_info.y = parameters[i * 2 + 1];
+        optimized_vehicle_info_list.push_back(optimized_vehicle_info);
     }
     delete [] parameters;
+    std::cout << "deleting parameters" << std::endl;
 
+    std::cout << "start writing results" << std::endl;
     WriteResults(config.output_filename, 
                  config.curve_points_filename, 
                  summary,
                  optimized_vehicle_info_list);
-
+    std::cout << "end writing results" << std::endl;
     return 0;
 }
